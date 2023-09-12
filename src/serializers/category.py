@@ -16,7 +16,7 @@ class ParentCategorySerializer(serializers.ModelSerializer):
 
 class CategorySerializer(serializers.ModelSerializer):
     company = CompanySerializer()
-    parent_category = ParentCategorySerializer()
+    parent_category = ParentCategorySerializer(required=False, allow_null=True)
 
     class Meta:
         model = Category
@@ -25,7 +25,10 @@ class CategorySerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         print(validated_data)
         c = Company.objects.get(name=validated_data["company"]["name"])
-        p = Category.objects.get(name=validated_data["parent_category"]["name"])
+        if validated_data["parent_category"] is None:
+            p = None
+        else:
+            p = Category.objects.get(name=validated_data["parent_category"]["name"])
         return Category.objects.create(
             name = validated_data["name"],
             company = c,
@@ -35,9 +38,12 @@ class CategorySerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         print(validated_data)
         c = Company.objects.get(name=validated_data["company"]["name"])
-        p = Category.objects.get(name=validated_data["parent_category"]["name"])
         instance.name = validated_data["name"]
         instance.company = c
-        instance.parent_category = p
 
+        if 'parent_category' in validated_data and validated_data["parent_category"] is not None:
+            instance.parent_category = Category.objects.get(name=validated_data["parent_category"]["name"])
+        if validated_data["parent_category"] is None :
+            instance.parent_category = None
+        instance.save()
         return instance
