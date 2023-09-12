@@ -21,3 +21,23 @@ class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
         fields = ('id','name', 'company', 'parent_category','created_at','updated_at')
+
+    def create(self, validated_data):
+        print(validated_data)
+        c = Company.objects.get(name=validated_data["company"]["name"])
+        p = Category.objects.get(name=validated_data["parent_category"]["name"])
+        return Category.objects.create(
+            name = validated_data["name"],
+            company = c,
+            parent_category = p
+        )
+    
+    def update(self, instance, validated_data):
+        print(validated_data)
+        c = Company.objects.get(name=validated_data["company"]["name"])
+        p = Category.objects.get(name=validated_data["parent_category"]["name"])
+        instance.name = validated_data["name"]
+        instance.company = c
+        instance.parent_category = p
+
+        return instance
